@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -10,6 +11,8 @@ namespace szyfrant
         int iterations = 16999;
         string salt = "|#$HeXzr-q5$v3Q|#$HeXzr-q5$v3Q#|#$HeXzr-q5$v3Q#|#$HeXzr-q5$v3Q##";
         string initializationVector = "|#$HeXzr-q5$v3Q#";
+
+        string tempFile = "temp.zip";
 
         public Cryptographer()
         {
@@ -27,11 +30,12 @@ namespace szyfrant
         public void encrypt(string path, string password)
         {
             byte[] saltBytes = Encoding.ASCII.GetBytes(salt);
-            //byte[] valueBytes = File.ReadAllBytes(path);
+            string tempPath = zip(path);
+            byte[] valueBytes = File.ReadAllBytes(tempPath);
             byte[] encryptedBytes;
 
-            BinaryReader binaryReader = new BinaryReader(File.Open(path,FileMode.Open));            
-            byte[] valueBytes = binaryReader.ReadBytes((int)binaryReader.BaseStream.Length);
+            //BinaryReader binaryReader = new BinaryReader(File.Open(path, FileMode.Open));
+            //byte[] valueBytes = binaryReader.ReadBytes((int)binaryReader.BaseStream.Length);
 
             Rfc2898DeriveBytes passBytes = new Rfc2898DeriveBytes(password, saltBytes, iterations);
             byte[] keyBytes = passBytes.GetBytes(aes.KeySize / 8);
@@ -52,20 +56,19 @@ namespace szyfrant
         public void decrypt(string path, string password)
         {
             byte[] saltBytes = Encoding.ASCII.GetBytes(salt);
-            //byte[] valueBytes = File.ReadAllBytes(path);
+            byte[] valueBytes = File.ReadAllBytes(path);
             byte[] decrypted;
 
             //FileStream fs = new FileStream(path, FileMode.Open);
             //BinaryReader binaryReader = new BinaryReader(fs, Encoding.UTF8);
             //byte[] valueBytes = binaryReader.ReadBytes((int)fs.Length);
 
-            BinaryReader binaryReader = new BinaryReader(File.Open(path, FileMode.Open));
-            byte[] valueBytes = binaryReader.ReadBytes((int)binaryReader.BaseStream.Length);
-
-
+            //BinaryReader binaryReader = new BinaryReader(File.Open(path, FileMode.Open));
+            //byte[] valueBytes = binaryReader.ReadBytes((int)binaryReader.BaseStream.Length);
+            
             Rfc2898DeriveBytes passBytes = new Rfc2898DeriveBytes(password, saltBytes, iterations);
             byte[] keyBytes = passBytes.GetBytes(aes.KeySize / 8);
-            aes.Key=keyBytes;
+            aes.Key = keyBytes;
 
             using (MemoryStream memoryStream = new MemoryStream(valueBytes))
             {
@@ -78,11 +81,32 @@ namespace szyfrant
 
             aes.Clear();
             File.WriteAllBytes("decrypted", decrypted);
+            unzip("decrypted");
         }
 
-        void zip()
+        string zip(string path)
+        {            
+            File.Delete(tempFile);
+            using (ZipArchive zip = ZipFile.Open(tempFile, ZipArchiveMode.Create))
+            {
+                zip.CreateEntryFromFile(path, getFilenameFromPath(path));
+            }
+            return tempFile;
+        }
+
+        void unzip(string path)
         {
-
+            using (ZipArchive zip = ZipFile.Open(tempFile, ZipArchiveMode.Read))
+            {
+                zip.ExtractToDirectory(@"C:\temp\out");
+            }
         }
+
+        string getFilenameFromPath(string path)
+        {
+            return path.Substring(path.LastIndexOf(@"\") + 1);
+        }
+
+
     }
 }
