@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
@@ -28,13 +29,8 @@ namespace szyfrant
         public void encrypt(string path, string password, string destFile)
         {
             byte[] saltBytes = Encoding.ASCII.GetBytes(salt);
-            //string tempPath = zip(path);
-            //byte[] valueBytes = File.ReadAllBytes(tempPath);
             byte[] valueBytes = zip(path);
-            byte[] encryptedBytes;
-
-            //BinaryReader binaryReader = new BinaryReader(File.Open(path, FileMode.Open));
-            //byte[] valueBytes = binaryReader.ReadBytes((int)binaryReader.BaseStream.Length);
+            byte[] encryptedBytes;          
 
             Rfc2898DeriveBytes passBytes = new Rfc2898DeriveBytes(password, saltBytes, iterations);
             byte[] keyBytes = passBytes.GetBytes(aes.KeySize / 8);
@@ -58,37 +54,27 @@ namespace szyfrant
             byte[] valueBytes = File.ReadAllBytes(path);
             byte[] decrypted;
 
-            //FileStream fs = new FileStream(path, FileMode.Open);
-            //BinaryReader binaryReader = new BinaryReader(fs, Encoding.UTF8);
-            //byte[] valueBytes = binaryReader.ReadBytes((int)fs.Length);
-
-            //BinaryReader binaryReader = new BinaryReader(File.Open(path, FileMode.Open));
-            //byte[] valueBytes = binaryReader.ReadBytes((int)binaryReader.BaseStream.Length);
-            
-            Rfc2898DeriveBytes passBytes = new Rfc2898DeriveBytes(password, saltBytes, iterations);
-            byte[] keyBytes = passBytes.GetBytes(aes.KeySize / 8);
-            aes.Key = keyBytes;
-
-            using (MemoryStream memoryStream = new MemoryStream(valueBytes))
+            try
             {
-                using (CryptoStream cryptoStream = new CryptoStream(memoryStream, aes.CreateDecryptor(), CryptoStreamMode.Write))
+                Rfc2898DeriveBytes passBytes = new Rfc2898DeriveBytes(password, saltBytes, iterations);
+                byte[] keyBytes = passBytes.GetBytes(aes.KeySize / 8);
+                aes.Key = keyBytes;
+
+                using (MemoryStream memoryStream = new MemoryStream(valueBytes))
                 {
-                    cryptoStream.Write(valueBytes, 0, valueBytes.Length);
+                    using (CryptoStream cryptoStream = new CryptoStream(memoryStream, aes.CreateDecryptor(), CryptoStreamMode.Write))
+                    {
+                        cryptoStream.Write(valueBytes, 0, valueBytes.Length);
+                    }
+                    decrypted = memoryStream.ToArray();
                 }
-                decrypted = memoryStream.ToArray();
+
+                aes.Clear();
+                unzip2(decrypted, destPath);
             }
-
-            aes.Clear();
-            //File.WriteAllBytes("decrypted", decrypted);
-            //unzip("decrypted", destPath);
-            unzip2(decrypted, destPath);
-        }
-
-        void unzip(string path, string destPath)
-        {
-            using (ZipArchive zip = ZipFile.Open(path, ZipArchiveMode.Read))
+            catch (Exception e)
             {
-                zip.ExtractToDirectory(destPath);
+                Logger.add(e.ToString());
             }
         }
 
