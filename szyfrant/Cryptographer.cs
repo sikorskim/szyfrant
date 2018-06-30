@@ -12,8 +12,6 @@ namespace szyfrant
         string salt = "|#$HeXzr-q5$v3Q|#$HeXzr-q5$v3Q#|#$HeXzr-q5$v3Q#|#$HeXzr-q5$v3Q##";
         string initializationVector = "|#$HeXzr-q5$v3Q#";
 
-        string tempFile = "temp.zip";
-
         public Cryptographer()
         {
             setup();
@@ -30,8 +28,9 @@ namespace szyfrant
         public void encrypt(string path, string password, string destFile)
         {
             byte[] saltBytes = Encoding.ASCII.GetBytes(salt);
-            string tempPath = zip(path);
-            byte[] valueBytes = File.ReadAllBytes(tempPath);
+            //string tempPath = zip(path);
+            //byte[] valueBytes = File.ReadAllBytes(tempPath);
+            byte[] valueBytes = zip(path);
             byte[] encryptedBytes;
 
             //BinaryReader binaryReader = new BinaryReader(File.Open(path, FileMode.Open));
@@ -80,33 +79,45 @@ namespace szyfrant
             }
 
             aes.Clear();
-            File.WriteAllBytes("decrypted", decrypted);
-            unzip("decrypted", destPath);
-        }
-
-        string zip(string path)
-        {            
-            File.Delete(tempFile);
-            using (ZipArchive zip = ZipFile.Open(tempFile, ZipArchiveMode.Create))
-            {
-                zip.CreateEntryFromFile(path, getFilenameFromPath(path));
-            }
-            return tempFile;
+            //File.WriteAllBytes("decrypted", decrypted);
+            //unzip("decrypted", destPath);
+            unzip2(decrypted, destPath);
         }
 
         void unzip(string path, string destPath)
         {
-            using (ZipArchive zip = ZipFile.Open(tempFile, ZipArchiveMode.Read))
+            using (ZipArchive zip = ZipFile.Open(path, ZipArchiveMode.Read))
             {
                 zip.ExtractToDirectory(destPath);
             }
+        }
+
+        void unzip2(byte[] zippedBytes, string destPath)
+        {
+            MemoryStream ms = new MemoryStream(zippedBytes);
+            using (var archive = new ZipArchive(ms, ZipArchiveMode.Read))
+            {
+                archive.ExtractToDirectory(destPath);
+            }
+        }
+
+        byte[] zip(string path)
+        {
+            byte[] zippedBytes;
+            using (var memoryStream = new MemoryStream())
+            {
+                using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+                {
+                    archive.CreateEntryFromFile(path, getFilenameFromPath(path));
+                }
+                zippedBytes = memoryStream.GetBuffer();
+            }
+            return zippedBytes;
         }
 
         string getFilenameFromPath(string path)
         {
             return path.Substring(path.LastIndexOf(@"\") + 1);
         }
-
-
     }
 }
