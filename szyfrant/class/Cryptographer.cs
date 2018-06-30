@@ -70,7 +70,7 @@ namespace szyfrant
                 }
 
                 aes.Clear();
-                unzip2(decrypted, destPath);
+                unzip(decrypted, destPath);
             }
             catch (Exception e)
             {
@@ -78,7 +78,7 @@ namespace szyfrant
             }
         }
 
-        void unzip2(byte[] zippedBytes, string destPath)
+        void unzip(byte[] zippedBytes, string destPath)
         {
             MemoryStream ms = new MemoryStream(zippedBytes);
             using (var archive = new ZipArchive(ms, ZipArchiveMode.Read))
