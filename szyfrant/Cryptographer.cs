@@ -27,7 +27,7 @@ namespace szyfrant
             aes.IV = Encoding.ASCII.GetBytes(initializationVector);
         }
 
-        public void encrypt(string path, string password)
+        public void encrypt(string path, string password, string destFile)
         {
             byte[] saltBytes = Encoding.ASCII.GetBytes(salt);
             string tempPath = zip(path);
@@ -50,10 +50,10 @@ namespace szyfrant
                 encryptedBytes = memoryStream.ToArray();
             }
             aes.Clear();
-            File.WriteAllBytes("encrypted", encryptedBytes);
+            File.WriteAllBytes(destFile, encryptedBytes);
         }
 
-        public void decrypt(string path, string password)
+        public void decrypt(string path, string password, string destPath)
         {
             byte[] saltBytes = Encoding.ASCII.GetBytes(salt);
             byte[] valueBytes = File.ReadAllBytes(path);
@@ -81,7 +81,7 @@ namespace szyfrant
 
             aes.Clear();
             File.WriteAllBytes("decrypted", decrypted);
-            unzip("decrypted");
+            unzip("decrypted", destPath);
         }
 
         string zip(string path)
@@ -94,11 +94,11 @@ namespace szyfrant
             return tempFile;
         }
 
-        void unzip(string path)
+        void unzip(string path, string destPath)
         {
             using (ZipArchive zip = ZipFile.Open(tempFile, ZipArchiveMode.Read))
             {
-                zip.ExtractToDirectory(@"C:\temp\out");
+                zip.ExtractToDirectory(destPath);
             }
         }
 

@@ -49,16 +49,71 @@ namespace szyfrant
 
         private void button3_Click(object sender, EventArgs e)
         {
+            string destFile;
             pass = textBox2.Text;
-            Cryptographer cryptographer = new Cryptographer();
-            cryptographer.encrypt(path, pass);
+
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.AddExtension = true;
+            saveFileDialog.ValidateNames = true;
+            saveFileDialog.Filter = "Zaszyfrowane| *.sfr";
+
+            DialogResult dialogResult = saveFileDialog.ShowDialog();
+
+            if (dialogResult == DialogResult.OK)
+            {
+                destFile = saveFileDialog.FileName;
+                Cryptographer cryptographer = new Cryptographer();
+                cryptographer.encrypt(path, pass, destFile);
+            }
+            else
+            {
+                MessageBox.Show("Wystąpił błąd! Spróbuj ponownie.", "Błąd", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void button4_Click(object sender, EventArgs e)
         {
-            pass = textBox2.Text;
-            Cryptographer cryptographer = new Cryptographer();
-            cryptographer.decrypt(path, pass);
+            pass = textBox2.Text;           
+
+            string destPath = null;
+
+            FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
+            DialogResult dialogResult = folderBrowserDialog.ShowDialog();
+            if (dialogResult == DialogResult.OK)
+            {
+                destPath = folderBrowserDialog.SelectedPath;
+                Cryptographer cryptographer = new Cryptographer();
+                cryptographer.decrypt(path, pass, destPath);
+            }
+            else
+            {
+                MessageBox.Show("Wystąpił błąd! Spróbuj ponownie.", "Błąd", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
+
+
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+        //void zipFile()
+        //{
+        //    string destinationFile = null;
+        //    string sourceDirectory = tempDirectory;
+        //    SaveFileDialog saveFileDialog = new SaveFileDialog();
+        //    saveFileDialog.ValidateNames = true;
+
+        //    DialogResult dialogResult = saveFileDialog.ShowDialog();
+
+        //    if (dialogResult == DialogResult.OK)
+        //    {
+        //        destinationFile = saveFileDialog.FileName;
+        //    }
+        //    else
+        //    {
+        //        MessageBox.Show("Wystąpił błąd! Spróbuj ponownie.", "Błąd", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        //    }
+        //}
     }
 }
