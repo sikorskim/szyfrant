@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="class\Cryptographer.cs" />
+    <Compile Include="class\PasswordGenerator.cs" />
     <Compile Include="FrmLogs.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -98,6 +99,21 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\changes-prevent.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\changes-allow.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\edit-copy1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\preferences-system-privacy.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\document-open.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

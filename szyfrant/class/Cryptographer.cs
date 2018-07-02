@@ -26,29 +26,38 @@ namespace szyfrant
             aes.IV = Encoding.ASCII.GetBytes(initializationVector);
         }
 
-        public void encrypt(string path, string password, string destFile)
+        public bool encrypt(string path, string password, string destFile)
         {
             byte[] saltBytes = Encoding.ASCII.GetBytes(salt);
             byte[] valueBytes = zip(path);
-            byte[] encryptedBytes;          
+            byte[] encryptedBytes;
 
-            Rfc2898DeriveBytes passBytes = new Rfc2898DeriveBytes(password, saltBytes, iterations);
-            byte[] keyBytes = passBytes.GetBytes(aes.KeySize / 8);
-            aes.Key = keyBytes;
-
-            using (MemoryStream memoryStream = new MemoryStream())
+            try
             {
-                using (CryptoStream cryptoStream = new CryptoStream(memoryStream, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                Rfc2898DeriveBytes passBytes = new Rfc2898DeriveBytes(password, saltBytes, iterations);
+                byte[] keyBytes = passBytes.GetBytes(aes.KeySize / 8);
+                aes.Key = keyBytes;
+
+                using (MemoryStream memoryStream = new MemoryStream())
                 {
-                    cryptoStream.Write(valueBytes, 0, valueBytes.Length);
+                    using (CryptoStream cryptoStream = new CryptoStream(memoryStream, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                    {
+                        cryptoStream.Write(valueBytes, 0, valueBytes.Length);
+                    }
+                    encryptedBytes = memoryStream.ToArray();
                 }
-                encryptedBytes = memoryStream.ToArray();
+                aes.Clear();
+                File.WriteAllBytes(destFile, encryptedBytes);
+                return true;
             }
-            aes.Clear();
-            File.WriteAllBytes(destFile, encryptedBytes);
+            catch (Exception e)
+            {
+                Logger.add(e.ToString());
+                return false;
+            }
         }
 
-        public void decrypt(string path, string password, string destPath)
+        public bool decrypt(string path, string password, string destPath)
         {
             byte[] saltBytes = Encoding.ASCII.GetBytes(salt);
             byte[] valueBytes = File.ReadAllBytes(path);
@@ -71,19 +80,35 @@ namespace szyfrant
 
                 aes.Clear();
                 unzip(decrypted, destPath);
-            }
+                return true;
+        }
             catch (Exception e)
             {
                 Logger.add(e.ToString());
+                return false;
             }
-        }
+
+}
 
         void unzip(byte[] zippedBytes, string destPath)
         {
-            MemoryStream ms = new MemoryStream(zippedBytes);
-            using (var archive = new ZipArchive(ms, ZipArchiveMode.Read))
+            try
             {
-                archive.ExtractToDirectory(destPath);
+                MemoryStream ms = new MemoryStream(zippedBytes);
+                using (var archive = new ZipArchive(ms, ZipArchiveMode.Read))
+                {
+                    archive.ExtractToDirectory(destPath);
+                }
+            }
+            catch (Exception e)
+            {
+                destPath = destPath + @"\odszyfrowane" + DateTime.Now.ToFileTime().ToString();
+                Directory.CreateDirectory(destPath);
+                MemoryStream ms = new MemoryStream(zippedBytes);
+                using (var archive = new ZipArchive(ms, ZipArchiveMode.Read))
+                {
+                    archive.ExtractToDirectory(destPath);
+                }
             }
         }
 

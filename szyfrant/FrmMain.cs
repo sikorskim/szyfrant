@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,8 +24,13 @@ namespace szyfrant
 
         void startup()
         {
-            label2.Text = "\u00a9 Computerman 2018";
+
+            string version = " wersja 1.00";
+            label2.Text = "Szyfrant" + version + " \u00a9 Computerman 2018";
+            this.Text += version;
             textBox2.UseSystemPasswordChar = true;
+            button3.Enabled = false;
+            button4.Enabled = false;
         }
 
         string openFile()
@@ -37,6 +43,18 @@ namespace szyfrant
             if (dialogResult == DialogResult.OK)
             {
                 file = openFileDialog.FileName;
+                string fileExt = file.Substring(file.Length - 5, 5);
+
+                if (fileExt == ".szfr")
+                {
+                    button3.Enabled = false;
+                    button4.Enabled = true;
+                }
+                else
+                {
+                    button3.Enabled = true;
+                    button4.Enabled = false;
+                }
             }
 
             textBox1.Text = file;
@@ -46,7 +64,7 @@ namespace szyfrant
 
         private void button1_Click(object sender, EventArgs e)
         {
-            path=openFile();
+            path = openFile();
         }
 
         private void button3_Click(object sender, EventArgs e)
@@ -66,13 +84,22 @@ namespace szyfrant
             string destPath = null;
 
             FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
+            folderBrowserDialog.RootFolder = Environment.SpecialFolder.DesktopDirectory;
             DialogResult dialogResult = folderBrowserDialog.ShowDialog();
             if (dialogResult == DialogResult.OK)
             {
                 destPath = folderBrowserDialog.SelectedPath;
                 Cryptographer cryptographer = new Cryptographer();
-                cryptographer.decrypt(path, pass, destPath);
+                if (cryptographer.decrypt(path, pass, destPath))
+                {
+                    MessageBox.Show("Deszyfrowanie zakończone sukcesem.");
+                }
+                else
+                {
+                    MessageBox.Show("Nieprawidłowe hasło!");
+                }
             }
+            uiReset();
         }
 
         void encrypt()
@@ -80,18 +107,34 @@ namespace szyfrant
             string destFile;
             pass = textBox2.Text;
 
-            SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.AddExtension = true;
-            saveFileDialog.ValidateNames = true;
-            saveFileDialog.Filter = "Zaszyfrowane| *.sfr";
-
-            DialogResult dialogResult = saveFileDialog.ShowDialog();
-
-            if (dialogResult == DialogResult.OK)
+            if (checkPassLength(pass))
             {
-                destFile = saveFileDialog.FileName;
-                Cryptographer cryptographer = new Cryptographer();
-                cryptographer.encrypt(path, pass, destFile);
+                SaveFileDialog saveFileDialog = new SaveFileDialog();
+                saveFileDialog.AddExtension = true;
+                saveFileDialog.ValidateNames = true;
+                saveFileDialog.Filter = "Zaszyfrowane| *.szfr";
+                saveFileDialog.FileName = DateTime.Now.ToFileTime().ToString();
+
+                DialogResult dialogResult = saveFileDialog.ShowDialog();
+
+                if (dialogResult == DialogResult.OK)
+                {
+                    destFile = saveFileDialog.FileName;
+                    Cryptographer cryptographer = new Cryptographer();
+                    if (cryptographer.encrypt(path, pass, destFile))
+                    {
+                        MessageBox.Show("Szyfrowanie zakończone sukcesem.");
+                    }
+                    else
+                    {
+                        MessageBox.Show("Wystąpił błąd. Proszę spróbować ponownie.");
+                    }
+                }
+                uiReset();
+            }
+            else
+            {
+                MessageBox.Show("Hasło powinno składać się z minimum 8 znaków!");
             }
         }
 
@@ -120,6 +163,37 @@ namespace szyfrant
         {
             FrmSettings frmSettings = new FrmSettings();
             frmSettings.ShowDialog();
+        }
+
+        void uiReset()
+        {
+            path = "";
+            textBox1.Clear();
+            textBox2.Clear();
+            button3.Enabled = false;
+            button4.Enabled = false;
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            textBox2.Text = PasswordGenerator.generate(32);
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            Clipboard.SetText(textBox2.Text);
+        }
+
+        bool checkPassLength(string pass)
+        {
+            if (pass.Length < 8)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
         }
     }
 }

@@ -16,18 +16,18 @@ namespace szyfrant
 
         public static void add(string content)
         {
-                XElement xLog = new XElement(xElementName);
+                //XElement xLog = new XElement(xElementName);
 
-                XAttribute xTime = new XAttribute("time", DateTime.Now);
-                XAttribute xContent = new XAttribute("content", content);
+                //XAttribute xTime = new XAttribute("time", DateTime.Now);
+                //XAttribute xContent = new XAttribute("content", content);
 
-                xLog.Add(xTime);
-                xLog.Add(xContent);
+                //xLog.Add(xTime);
+                //xLog.Add(xContent);
 
-                XDocument doc = XDocument.Load(path);
-                XElement rootElement = doc.Element("root");
-                rootElement.Add(xLog);
-                doc.Save(path);
+                //XDocument doc = XDocument.Load(path);
+                //XElement rootElement = doc.Element("root");
+                //rootElement.Add(xLog);
+                //doc.Save(path);
         }
 
         public static IEnumerable getData()
