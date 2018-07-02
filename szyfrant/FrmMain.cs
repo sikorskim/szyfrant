@@ -25,7 +25,7 @@ namespace szyfrant
         void startup()
         {
 
-            string version = " wersja 1.00";
+            string version = " wersja 1.01";
             label2.Text = "Szyfrant" + version + " \u00a9 Computerman 2018";
             this.Text += version;
             textBox2.UseSystemPasswordChar = true;
@@ -181,7 +181,10 @@ namespace szyfrant
 
         private void button5_Click(object sender, EventArgs e)
         {
-            Clipboard.SetText(textBox2.Text);
+            if (textBox2.Text.Length > 0)
+            {
+                Clipboard.SetText(textBox2.Text);
+            }
         }
 
         bool checkPassLength(string pass)
